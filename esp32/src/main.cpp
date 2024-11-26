@@ -46,6 +46,13 @@ float pressure_bmp, temp_bmp, ax, ay, az, gx, gy, gz, temp_mpu, temp_sht4, humid
 
 String current_time = "";
 
+// Diffie-Hellman Parameters
+const uint32_t P = 23;  // Small prime number
+const uint32_t G = 5;   // Generator
+uint32_t private_key;   // Randomly generated private key
+uint32_t public_key;    // ESP32's public key
+uint32_t shared_secret; // Computed shared secret
+
 // Function Declaration
 
 // void handleRoot() {
@@ -106,9 +113,42 @@ void update_with_NTP(void * parameter) {
   }
 }
 
+// Function to calculate modular exponentiation
+uint32_t mod_exp(uint32_t base, uint32_t exp, uint32_t mod) {
+    uint32_t result = 1;
+    for (uint32_t i = 0; i < exp; i++) {
+        result = (result * base) % mod;
+    }
+    return result;
+}
+
+// Generate DH keys
+void generate_dh_keys() {
+    private_key = random(1, P - 1); // Random private key
+    public_key = mod_exp(G, private_key, P); // Calculate public key
+    Serial.printf("Generated Public Key: %d\n", public_key);
+}
+
+// Handle DH key exchange (server endpoint)
+void handle_dh_key_exchange() {
+    if (!server.hasArg("public_key")) {
+        server.send(400, "text/plain", "Public key missing");
+        return;
+    }
+
+    // Parse received public key
+    uint32_t received_public_key = server.arg("public_key").toInt();
+    Serial.printf("Received Public Key: %d\n", received_public_key);
+
+    // Calculate shared secret
+    shared_secret = mod_exp(received_public_key, private_key, P);
+    Serial.printf("Calculated Shared Secret: %d\n", shared_secret);
+
+    // Respond with ESP32's public key
+    server.send(200, "text/plain", String(public_key));
+}
+
 void format_data() {
-    // JSON data to encrypt
-    //String jsonResponse = "{\"temperature\":25,\"humidity\":60}";
 
     String jsonResponse = "{\"pressure_bmp\": " + String(pressure_bmp / 100) +
                           ", \"temp_bmp\": " + String(temp_bmp) +
@@ -124,8 +164,14 @@ void format_data() {
                           ", \"current_time\": \"" + current_time + "\"" + "}";
 
     // AES key and IV (leave unchanged)
-    uint8_t key[16] = {0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38,
-                       0x39, 0x30, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66}; // "1234567890abcdef"
+    // uint8_t key[16] = {0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38,
+    //                    0x39, 0x30, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66}; // "1234567890abcdef"
+
+    uint8_t key[16];
+    for (int i = 0; i < 16; i++) {
+        key[i] = (shared_secret >> (8 * (i % 4))) & 0xFF;  // Map shared_secret into 16 bytes
+    }
+
     uint8_t iv[16] = {0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38,
                       0x39, 0x30, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66};  // "1234567890abcdef"
 
@@ -148,22 +194,11 @@ void format_data() {
     mbedtls_aes_crypt_cbc(&aes, MBEDTLS_AES_ENCRYPT, paddedLen, iv, plainText, encryptedData);
     mbedtls_aes_free(&aes);
 
-    // Debug: Print encrypted binary data
-    Serial.println("***Encrypted Binary Data:");
-    for (size_t i = 0; i < paddedLen; i++) {
-        Serial.printf("%02X ", encryptedData[i]);
-    }
-    Serial.println();
-
     // Convert encrypted data to Base64
     int base64Len = Base64.encodedLength(paddedLen);
     char base64Output[base64Len + 1];
     Base64.encode(base64Output, (char*)encryptedData, paddedLen);
     base64Output[base64Len] = '\0';
-
-    // Debug: Print Base64 output
-    Serial.println("***Base64 Output:");
-    Serial.println(base64Output);
 
     // Send Base64 data via HTTP
     server.send(200, "text/plain", base64Output);
@@ -198,7 +233,6 @@ void update_sensor_data(void *parameter) {
   }
 }
 
-
 // Setup Function
 
 void setup() {
@@ -225,6 +259,10 @@ void setup() {
     format_data();
   });
   
+  // Diffie-Hellman
+  generate_dh_keys();
+  server.on("/dh-key-exchange", handle_dh_key_exchange);
+
   // start the server
   server.begin();
   Serial.println("Server started");
@@ -299,6 +337,8 @@ void setup() {
 void loop() {
   Serial.println("Handling client...");
   server.handleClient();
+  Serial.printf("Public Key: %d\n", public_key);
+  Serial.printf("Shared Secret: %d\n", shared_secret);
   delay(1000); // Add a delay to avoid flooding the Serial Monitor
 }
 
