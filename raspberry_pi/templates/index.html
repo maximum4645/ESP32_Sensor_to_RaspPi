@@ -1,0 +1,103 @@
+<!-- index.html -->
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>ESP32 Sensor Data</title>
+    <!-- Include Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body class="bg-light">
+    <div class="container mt-5">
+      <h1 class="text-center">ESP32 Sensor Data</h1>
+      <p class="text-center">Time: <span id="current_time" class="fw-bold">Loading...</span></p>
+      <div class="table-responsive">
+        <table class="table table-bordered">
+          <thead class="table-primary">
+            <tr>
+              <th>Sensor</th>
+              <th>Temperature (&deg;C)</th>
+              <th>Pressure (hPa)</th>
+              <th>Humidity (%)</th>
+              <th>Acceleration (m/s²)</th>
+              <th>Gyroscope (°/s)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>BMP280</td>
+              <td id="temp_bmp">-</td>
+              <td id="pressure_bmp">-</td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+            </tr>
+            <tr>
+              <td>MPU6050</td>
+              <td id="temp_mpu">-</td>
+              <td>-</td>
+              <td>-</td>
+              <td>
+                <span id="ax">-</span>, 
+                <span id="ay">-</span>, 
+                <span id="az">-</span>
+              </td>
+              <td>
+                <span id="gx">-</span>, 
+                <span id="gy">-</span>, 
+                <span id="gz">-</span>
+              </td>
+            </tr>
+            <tr>
+              <td>SHT4x</td>
+              <td id="temp_sht4">-</td>
+              <td>-</td>
+              <td id="humid_sht4">-</td>
+              <td>-</td>
+              <td>-</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS (Optional) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      function fetchSensorData() {
+        console.log('Fetching sensor data...');
+        fetch('/sensor')
+          .then(response => response.json())
+          .then(data => {
+            console.log('Fetched data:', data); // Debug output
+
+            // Update sensor values in the table
+            document.getElementById('pressure_bmp').innerText = data.pressure_bmp || '-';
+            document.getElementById('temp_bmp').innerText = data.temp_bmp || '-';
+            document.getElementById('temp_mpu').innerText = data.temp_mpu || '-';
+            document.getElementById('temp_sht4').innerText = data.temp_sht4 || '-';
+            document.getElementById('humid_sht4').innerText = data.humid_sht4 || '-';
+
+            // Acceleration (MPU)
+            document.getElementById('ax').innerText = data.ax || '-';
+            document.getElementById('ay').innerText = data.ay || '-';
+            document.getElementById('az').innerText = data.az || '-';
+
+            // Gyroscope (MPU)
+            document.getElementById('gx').innerText = data.gx || '-';
+            document.getElementById('gy').innerText = data.gy || '-';
+            document.getElementById('gz').innerText = data.gz || '-';
+
+            // Update current time from the server
+            document.getElementById('current_time').innerText = data.current_time || 'Failed to obtain time';
+          })
+          .catch(error => {
+            console.error('Error fetching sensor data:', error);
+          });
+      }
+
+      // Fetch data periodically
+      setInterval(fetchSensorData, 3000);
+    </script>
+  </body>
+</html>

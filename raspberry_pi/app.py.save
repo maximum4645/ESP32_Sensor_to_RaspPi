@@ -1,0 +1,21 @@
+import requests
+from flask import Flask, jsonify
+
+app = Flask(__name__)
+
+ESP32_IP = "192.168.1.37"
+
+# Serve the webpage
+@app.route("/")
+def serve_page():
+    return "<h1>Welcome to Project 4</h1><p>This is the Raspberry Pi web server.</p>"
+
+# Proxy sensor data from ESP32
+@app.route("/sensor")
+def get_sensor_data():
+    # Placeholder for ESP32 URL
+    esp32_url = "http://<ESP32_IP>/sensor"
+
+    # Simulate getting data from ESP32 (replace with actual HTTP request later)
+    dummy_data = {"temperature": 25.0, "humidity": 50.0}
+    app.run(host="0.0.0.0", port=5000)
