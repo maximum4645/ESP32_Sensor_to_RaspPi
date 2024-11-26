@@ -28,8 +28,8 @@ Thread 3 : update_with_NTP
 
 // Global Variable Initialization
 
-const char* ssid = "MAX_2.4G";
-const char* password = "46454645";
+const char* ssid = "WIFI_SSID";
+const char* password = "PASSWORD";
 
 WebServer server(80);
 
