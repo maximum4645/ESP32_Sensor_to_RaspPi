@@ -7,7 +7,7 @@ from base64 import b64decode
 
 app = Flask(__name__)
 
-ESP32_IP = "192.168.1.37"
+ESP32_IP = "ESP32_IP_ADDRESS"
 
 # DH Parameters (same as ESP32)
 P = 23  # Prime modulus
