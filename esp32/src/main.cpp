@@ -8,11 +8,9 @@ Thread 1: update_sensor_data
 - Transmits the encrypted data to the Flask server over HTTP.
 Thread 2: print_local_time
 - Updates and prints the current local time every second.
-- Sends the local time to the server to keep track of when data is collected.
 Thread 3: update_with_NTP
 - Synchronizes the ESP32's time with an NTP server every minute.
 - Ensures that timestamps in the collected data are accurate and consistent.
-- Sends the updated time to the Flask server for additional processing.
 */
 
 #include <Arduino.h>
