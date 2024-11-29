@@ -3,13 +3,20 @@
 This project implements secure communication between an ESP32-S2 microcontroller and a Flask-based server. The ESP32 collects data from various sensors, encrypts it using AES (with a key derived from Diffie-Hellman key exchange), and transmits the encrypted data to the Flask server for decryption and processing.
 
 ## ESP32 side:
-- Collects sensor data:
-  - BMP280: Temperature, Pressure
-  - MPU6050: Acceleration, Gyroscope, Temperature
-  - SHT4x: Temperature, Humidity
-- Synchronizes time with an NTP server
-- Uses Diffie-Hellman key exchange for secure AES key generation
-- Encrypts data with AES and transmits it to the server over HTTP
+- Thread 1: update_sensor_data
+  - Collects data from sensors every 10 seconds:
+    - BMP280: Temperature, Pressure
+    - MPU6050: Acceleration, Gyroscope, Temperature
+    - SHT4x: Temperature, Humidity
+  - Encrypts the collected data using AES in CBC mode with a 16-byte key derived from the Diffie-Hellman key exchange.
+  - Transmits the encrypted data to the Flask server over HTTP.
+- Thread 2: print_local_time
+  - Updates and prints the current local time every second.
+  - Sends the local time to the server to keep track of when data is collected.
+- Thread 3: update_with_NTP
+  - Synchronizes the ESP32's time with an NTP server every minute.
+  - Ensures that timestamps in the collected data are accurate and consistent.
+  - Sends the updated time to the Flask server for additional processing.
 
 ## Raspberry Pi side:
 - Handles Diffie-Hellman key exchange
