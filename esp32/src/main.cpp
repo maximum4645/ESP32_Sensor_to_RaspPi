@@ -1,16 +1,18 @@
 /*
-Thread 1 : update_sensor_data
-- Host a web server
-- Read BMP280 sensor (Pressure, Temperature) every 10 sec
-- Read HTS221 sensor (Temperature, Humidity) every 10 sec (XXX NOT ON THIS BOARD XXX)
-- Read MPU6050 sensor (3-axis Acceleration, 3-axis Angular velocity, Temperature) every 10 sec
-- Read SHT4x sensor (Temperature, Humidity) every 10 sec
-Thread 2 : print_local_time
-- Get local time every 1 sec
-- Send time to the server
-Thread 3 : update_with_NTP
-- Update time with NTP server every 1 min
-- Send time to the server
+Thread 1: update_sensor_data
+- Collects data from sensors every 10 seconds:
+  - BMP280: Temperature, Pressure
+  - MPU6050: Acceleration, Gyroscope, Temperature
+  - SHT4x: Temperature, Humidity
+- Encrypts the collected data using AES in CBC mode with a 16-byte key derived from the Diffie-Hellman key exchange.
+- Transmits the encrypted data to the Flask server over HTTP.
+Thread 2: print_local_time
+- Updates and prints the current local time every second.
+- Sends the local time to the server to keep track of when data is collected.
+Thread 3: update_with_NTP
+- Synchronizes the ESP32's time with an NTP server every minute.
+- Ensures that timestamps in the collected data are accurate and consistent.
+- Sends the updated time to the Flask server for additional processing.
 */
 
 #include <Arduino.h>
