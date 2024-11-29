@@ -28,3 +28,5 @@ This project implements secure communication between an ESP32-S2 microcontroller
 - Run the server and interact with the provided endpoints:
   - "/dh-key-exchange": Perform Diffie-Hellman key exchange
   - "/sensor": Fetch and decrypt encrypted sensor data
+
+![p4](https://github.com/user-attachments/assets/f486236f-72eb-4410-bc54-c6d9317f0a9f)
