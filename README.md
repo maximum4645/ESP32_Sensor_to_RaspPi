@@ -2,6 +2,10 @@
 ## Overview
 This project implements secure communication between an ESP32-S2 microcontroller and a Flask-based server. The ESP32 collects data from various sensors, encrypts it using AES (with a key derived from Diffie-Hellman key exchange), and transmits the encrypted data to the Flask server for decryption and processing.
 
+**youtube**: https://youtu.be/n-s7BczhbVI?si=uzhSN1f2a_-Ab_6s<br/>
+
+![p4](https://github.com/user-attachments/assets/f486236f-72eb-4410-bc54-c6d9317f0a9f)
+
 ## ESP32 side
 - Thread 1: update_sensor_data
   - Collects data from sensors every 10 seconds:
@@ -33,5 +37,3 @@ This project implements secure communication between an ESP32-S2 microcontroller
 - Run the server and interact with the provided endpoints:
   - "/dh-key-exchange": Perform Diffie-Hellman key exchange
   - "/sensor": Fetch and decrypt encrypted sensor data
-
-![p4](https://github.com/user-attachments/assets/f486236f-72eb-4410-bc54-c6d9317f0a9f)
